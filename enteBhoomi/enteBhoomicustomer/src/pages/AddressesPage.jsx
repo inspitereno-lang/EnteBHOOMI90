@@ -1,0 +1,145 @@
+import { MapPin, Plus, ChevronLeft, Home, Briefcase, MapPinned } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useStore } from '../context/StoreContext.jsx';
+import { Button } from '../components/ui/button.jsx';
+
+const typeIcons = {
+  home: Home,
+  work: Briefcase,
+  other: MapPinned,
+};
+
+export default function AddressesPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { addresses, setDefaultAddress, deleteAddress } = useStore();
+
+  const fromCart = location.state?.from === 'cart';
+  const backPath = fromCart ? '/cart' : '/profile';
+  const backLabel = fromCart ? 'Back to Cart' : 'Back to Profile';
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA]">
+      <div className="bg-white border-b border-[#E5E5E5]">
+        <div className="section-container py-4">
+          <button
+            onClick={() => navigate(backPath)}
+            className="flex items-center gap-2 text-[#666666] hover:text-[#5bab00] transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            {backLabel}
+          </button>
+        </div>
+      </div>
+
+      <div className="section-container py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-[#1A1A1A]">Saved Addresses</h1>
+          <Button
+            onClick={() => navigate('/add-address', { state: { returnTo: '/addresses', from: location.state?.from } })}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Add New
+          </Button>
+        </div>
+
+        {addresses.length === 0 ? (
+          <div className="bg-white rounded-2xl p-12 text-center">
+            <div className="w-20 h-20 bg-[#F5F5F5] rounded-full flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-10 h-10 text-[#999999]" />
+            </div>
+            <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">No saved addresses</h3>
+            <p className="text-[#666666] mb-6">Add your first address to get started</p>
+            <Button
+              onClick={() => navigate('/add-address', { state: { returnTo: '/addresses', from: location.state?.from } })}
+              className="btn-primary"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Address
+            </Button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {addresses.map((address) => {
+              const Icon = typeIcons[address.type];
+              return (
+                <div
+                  key={address._id}
+                  className={`bg-white rounded-2xl p-6 shadow-sm border-2 transition-all ${address.isDefault
+                    ? 'border-[#5bab00]'
+                    : 'border-transparent hover:border-[#E5E5E5]'
+                    }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-[#f1f7e8] rounded-xl flex items-center justify-center">
+                        {Icon ? (
+                          <Icon className="w-5 h-5 text-[#5bab00]" />
+                        ) : (
+                          <Home className="w-5 h-5 text-[#5bab00]" />
+                        )}
+                      </div>
+                      <div>
+                        <span className="px-2 py-1 bg-[#5bab00] text-white text-xs font-medium rounded-lg capitalize">
+                          {address.type}
+                        </span>
+                        {address.isDefault && (
+                          <span className="ml-2 text-xs text-[#5bab00]">Default</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-2">
+                    {address.name && (
+                      <p className="font-semibold text-[#1A1A1A]">{address.name}</p>
+                    )}
+                    <p className="text-[#1A1A1A]">{address.fullAddress}</p>
+                  </div>
+                  {address.landmark && (
+                    <p className="text-sm text-[#666666] mb-2">
+                      Landmark: {address.landmark}
+                    </p>
+                  )}
+                  {address.phone && (
+                    <p className="text-sm text-[#666666]">Phone: {address.phone}</p>
+                  )}
+
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-[#E5E5E5]">
+                    {!address.isDefault && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDefaultAddress(address._id)}
+                        className="flex-1 border-[#5bab00] text-[#5bab00] hover:bg-[#f1f7e8]"
+                      >
+                        Set as Default
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/add-address', { state: { editAddress: address, returnTo: '/addresses', from: location.state?.from } })}
+                      className="flex-1 border-[#5bab00] text-[#5bab00] hover:bg-[#f1f7e8]"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deleteAddress(address._id)}
+                      className="flex-1 border-[#E85A24] text-[#E85A24] hover:bg-[#FFF3ED]"
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
